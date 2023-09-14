@@ -1,65 +1,79 @@
 const express = require('express');
-const fs = require('fs').promises;
-const bodyParser = require('body-parser'); 
+const bodyParser = require('body-parser');
 const cors = require('cors');
 const app = express();
-
 const PORT = 8000;
 
+// Enable Cross-Origin Resource Sharing (CORS)
 app.use(cors());
-app.use(bodyParser.json()); 
 
+// Parse incoming JSON data
+app.use(bodyParser.json());
+
+// Initialize the database connection
 const db = require("./config/mongoose.js");
-// app.use(express.urlencoded({ extended: false }));
 
+// Parse cookies in the request
+const cookieParser = require("cookie-parser");
+app.use(cookieParser());
 
-
-//authentication
+// Set up session management for authentication
 const session = require("express-session");
 const passport = require("passport");
-const passportLocal = require("./config/passport-local-stratergy");
-const MongoStore = require("connect-mongo"); // to store session data in mongodb
 
-//create session
+// Import Passport Local Strategy
+const passportLocal = require("./config/passport-local-strategy.js");
+
+// Import the MongoStore to store session data in MongoDB
+const MongoStore = require("connect-mongo");
+
+// Middleware to parse the request body
+app.use(express.urlencoded({ extended: false }));
+app.use(cookieParser());
+
+
+// Create a session
 app.use(
-    session({
-      name: "cdnPlacement",
-      secret: "E1EQr55QqbYbyyTJEboFzVRfRMngtf0E",
-      saveUninitialized: false,
-      resave: false,
-      cookie: {
-        maxAge: 1000 * 60 * 100,
+  session({
+    name: "pixelFeed", // Name of the session cookie
+    secret: "E1EQr55QqbYbyyTJEboFzVRfRMngtf8E", // Secret used to sign the session ID cookie
+    saveUninitialized: false,
+    resave: false,
+    cookie: {
+      maxAge: 1000 * 60 * 100, // Session duration in milliseconds (e.g., 10 minutes)
+    },
+    store: MongoStore.create(
+      {
+        mongoUrl: "mongodb://127.0.0.1:27017/pixel-feed", // MongoDB connection URL
+        autoremove: "disabled", // Disable automatic removal of expired sessions
       },
-  
-      store: new MongoStore(
-        {
-          mongoUrl: "mongodb+srv://nirub:nirub283@cluster0.ye8q8b0.mongodb.net/cdn?retryWrites=true&w=majority",
-          autoremove: "disabled",
-        },
-        function (err) {
-            console.log(
-              "error at mongo store",
-              err || "connection established to store cookie"
-            );
-          }
-        ),
-      })
-    );
-    
-    //authentication
-    app.use(passport.initialize());
-    app.use(passport.session());
-    app.use(passport.SetAuthenticatedUser);
+      function (err) {
+        console.log(
+          "error at mongo store",
+          err || "connection established to store cookie"
+        );
+      }
+    ),
+  })
+);
+
+// Initialize Passport
+app.use(passport.initialize());
+
+// Use Passport's session after initializing Passport
+app.use(passport.session());
+
+// Add authenticated user information to res.locals
+app.use(passport.setAuthenticatedUser);
 
 
-
+// Include your routes
 app.use("/", require("./routes"));
-      
 
-
+// Start the server
 app.listen(PORT, function (err) {
-    if (err) {
-      console.log(`The error in runng server ${err}`);
-    }
-    console.log(`The server is running on port: ${PORT}`);
-  });
+  if (err) {
+    console.log(`The error in running server ${err}`);
+  }
+  console.log(`The server is running on port: ${PORT}`);
+});

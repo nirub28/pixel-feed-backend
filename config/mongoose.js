@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");  // data base connection
 
-mongoose.connect("mongodb://localhost/pixel-feed");
+mongoose.connect("mongodb://127.0.0.1:27017/pixel-feed");
 
 const db = mongoose.connection;
 
