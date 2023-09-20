@@ -45,7 +45,7 @@ app.use(
     store: MongoStore.create(
       {
         mongoUrl: "mongodb://127.0.0.1:27017/pixel-feed", // MongoDB connection URL
-        autoremove: "disabled", // Disable automatic removal of expired sessions
+        touchAfter: 3600
       },
       function (err) {
         console.log(

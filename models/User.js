@@ -1,25 +1,51 @@
 const mongoose = require("mongoose");
+// import Post from "./Post";
+
 
 const userSchema = new mongoose.Schema(
   {
     email: {
       type: String,
-      require: true,
+      required: true,
       unique: true,
     },
     name: {
       type: String,
-      require: true,
+      required: true,
     },
     password: {
       type: String,
-      require: true,
+      required: true,
     },
-     username:{
-        type: String,
-        require: true,
-        unique: true,
+    username: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+    profilepic: {
+      type: Buffer,
+    },
+    bio: {
+      type: String,
+    },
+    posts: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Post",
       },
+    ],
+    followers: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
+    following: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
   },
   {
     timestamps: true,

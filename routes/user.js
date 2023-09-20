@@ -16,6 +16,7 @@ router.post("/signin", passport.authenticate("local"), (req, res) => {
     email: user.email,
     name: user.name,
     username: user.username,
+    profilePicture:user.profilepic,
   };
 
   // Generate a JWT token
@@ -32,5 +33,16 @@ router.post("/signin", passport.authenticate("local"), (req, res) => {
 
 
 router.get("/logout", userController.destroySession);
+
+
+router.post('/follow/:userId', userController.followUser);
+router.post('/unfollow/:userId', userController.unfollowUser);
+router.get('/profile/:userid', userController.getUserProfileByUsername);
+
+
+router.get('/checkIfFollowing/:userId', userController.checkIsFollowing);
+router.post('/unfollow/:userId',  userController.unFollowing);
+
+
 
 module.exports = router;
