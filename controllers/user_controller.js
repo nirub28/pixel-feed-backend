@@ -115,31 +115,6 @@ module.exports.followUser = async (req, res) => {
 
 
 
-// Unfollow a user
-module.exports.unfollowUser = async (req, res) => {
-  const { userId } = req.params;
-  const { currentUserId } = req.body;
-
-  try {
-    // Find the target user by userId
-    const targetUser = await User.findById(userId);
-
-    // Remove the current user from the followers list of the target user
-    targetUser.followers = targetUser.followers.filter((followerId) => followerId !== currentUserId);
-
-    // Save the updated target user data
-    await targetUser.save();
-
-    // Return a success response or updated user data
-    res.status(200).json({ message: 'User unfollowed successfully', updatedUser: targetUser });
-  } catch (error) {
-    // Handle errors
-    console.error('Error unfollowing user:', error);
-    res.status(500).json({ error: 'Error unfollowing user' });
-  }
-};
-
-
 
 // Get user profile by username
 module.exports.getUserProfileByUsername = async (req, res) => {
@@ -164,13 +139,14 @@ module.exports.getUserProfileByUsername = async (req, res) => {
   }
 };
 
-
+// to check if user is follwed
 module.exports.checkIsFollowing = async (req, res) => {
-  const { userId } = req.params;
-  const { currentUserId } = req.query;
+  const { userId, currentUserId } = req.query;
+    // console.log("user name", userId,currentUserId );
+
 
   try {
-    const targetUser = await User.findById({_id:userId});
+    const targetUser = await User.findById(userId);
 
     if (!targetUser) {
       return res.status(404).json({ isFollowing: false });
@@ -185,8 +161,8 @@ module.exports.checkIsFollowing = async (req, res) => {
 };
 
 
-//unfollow user
 
+//unfollow user
 module.exports.unFollowing = async (req, res) => {
   const { userId } = req.params;
   const { currentUserId } = req.body;
@@ -195,19 +171,21 @@ module.exports.unFollowing = async (req, res) => {
     const targetUser = await User.findById(userId);
     const currentUser = await User.findById(currentUserId);
 
+    // console.log(currentUser);
+
     if (!targetUser || !currentUser) {
       return res.status(404).json({ error: 'User not found' });
     }
 
     // Remove the current user from the target user's followers list
-    targetUser.followers = targetUser.followers.filter(
-      (followerId) => followerId !== currentUserId
-    );
+
+    targetUser.followers = targetUser.followers.filter((followerId) => followerId.toString() !== currentUserId);
 
     // Remove the target user from the current user's following list
     currentUser.following = currentUser.following.filter(
-      (followingId) => followingId !== userId
+      (followingId) => followingId.toString() !== userId
     );
+
 
     // Save the updated user data for both users
     await targetUser.save();
@@ -218,5 +196,85 @@ module.exports.unFollowing = async (req, res) => {
   } catch (error) {
     console.error('Error unfollowing user:', error);
     res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+
+// Get followers of a user
+exports.getFollowers = async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    const user = await User.findById(userId).populate('followers'); // Assuming you have a 'followers' field in your User model
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const followers = user.followers; // Assuming 'followers' is an array of user IDs
+
+    res.json({ followers });
+  } catch (error) {
+    console.error('Error fetching followers:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+// Get users followed by a user
+exports.getFollowing = async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    const user = await User.findById(userId).populate('following'); // Assuming you have a 'following' field in your User model
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const following = user.following; // Assuming 'following' is an array of user IDs
+
+    res.json({ following });
+  } catch (error) {
+    console.error('Error fetching following:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+
+
+// Update user profile (including bio and profile picture)
+exports.updateUserProfile = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { bio, profilePicture } = req.body;
+
+    // console.log("route reached heree:",userId );
+
+    const user = await User.findById(userId);
+
+    // console.log("user is",user);
+
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Only update the bio if the request contains a bio value
+    if (bio) {
+      user.bio = bio;
+    }
+
+    // Only update the profile picture if the request contains a profilePicture value
+    if (profilePicture) {
+      user.profilePicture = profilePicture;
+    }
+
+    // Save the updated user
+    await user.save();
+
+    res.status(200).json({ message: 'Profile updated successfully', user });
+  } catch (error) {
+    console.error('Error updating profile:', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
 };
