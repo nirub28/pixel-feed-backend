@@ -23,7 +23,7 @@ const userSchema = new mongoose.Schema(
       unique: true,
     },
     profilepic: {
-      type: Buffer,
+      type: String,
     },
     bio: {
       type: String,

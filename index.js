@@ -40,7 +40,7 @@ app.use(
     saveUninitialized: false,
     resave: false,
     cookie: {
-      maxAge: 1000 * 60 * 100, // Session duration in milliseconds (e.g., 10 minutes)
+      maxAge: 1000 * 60 * 60, /// Session duration in milliseconds (1 hour)
     },
     store: MongoStore.create(
       {

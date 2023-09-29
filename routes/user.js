@@ -4,11 +4,21 @@ const router = express.Router();
 const userController = require("../controllers/user_controller");
 const jwt = require("jsonwebtoken");
 
+const multer = require('multer');
+const upload = multer(); // Initialize multer
+
+
+
 router.get("/check-username", userController.isUsernameAvailable);
 router.post("/signup", userController.signup);
 
 router.post("/signin", passport.authenticate("local"), (req, res) => {
   const user = req.user;
+
+
+  // Generate a JWT token
+  const tokenToSend = jwt.sign({ userId: user.id }, "pixelniru", { expiresIn: "1h" });
+
 
   // Create a user object with only the desired properties
   const userToSend = {
@@ -16,19 +26,17 @@ router.post("/signin", passport.authenticate("local"), (req, res) => {
     email: user.email,
     name: user.name,
     username: user.username,
-    profilePicture:user.profilepic,
+    profilePictureToShow:user.profilepic,
     bio: user.bio,
+    followers:user.followers,
+    following:user.following,
+    token:tokenToSend,
   };
-
-  // Generate a JWT token
-  const token = jwt.sign({ userId: user.id }, "pixelniru", { expiresIn: "1h" });
 
   // Send the response with user, session, and token
   res.status(200).json({
     message: "Login successful",
     user: userToSend,
-    session: req.session,
-    token: token,
   });
 });
 
@@ -46,7 +54,9 @@ router.post('/unfollow/:userId',  userController.unFollowing);
 router.get('/followers/:userId', userController.getFollowers);
 router.get('/following/:userId', userController.getFollowing);
 
-router.put('/update-profile/:userId', userController.updateUserProfile);
+router.put('/update-profile/:userId', upload.single('profilePicture'), userController.updateUserProfile);
+
+router.get('/search', userController.seachUsers );
 
 
 module.exports = router;
