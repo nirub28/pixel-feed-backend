@@ -4,6 +4,25 @@ const cors = require('cors');
 const app = express();
 const PORT = 8000;
 
+// const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
+
+const dotenv = require ('dotenv'); // env variables
+dotenv.config();
+
+
+// const bucketName = process.env.BUCKET_NAME
+// const bucketRegion = process.env.BUCKET_REGION
+// const accessKey = process.env.ACCESS_KEY
+// const secretAccessKey = process.env.SECRET_ACCESS_KEY
+
+// const s3 = new S3Client({
+//   credentials:{
+//     accessKeyId: accessKey,
+//     secretAccessKey: secretAccessKey,
+//   },
+//   region:bucketRegion,
+// })
+
 // Enable Cross-Origin Resource Sharing (CORS)
 app.use(cors());
 
@@ -20,6 +39,8 @@ app.use(cookieParser());
 // Set up session management for authentication
 const session = require("express-session");
 const passport = require("passport");
+
+
 
 // Import Passport Local Strategy
 const passportLocal = require("./config/passport-local-strategy.js");

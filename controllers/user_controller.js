@@ -246,7 +246,7 @@ exports.updateUserProfile = async (req, res) => {
     const { bio } = req.body;
     const profilePicture = req.body; 
 
-    // console.log("user is",userId);
+    console.log("user is",req.body);
 
 
     const user = await User.findById(userId).select('-password'); // Exclude the password field
