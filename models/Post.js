@@ -1,18 +1,19 @@
 const mongoose = require("mongoose");
-// import User from "./User";
+const User = require("./User");
 
 const postSchema = new mongoose.Schema(
   {
-    content: {
+    caption: {
       type: String,
-      required: true,
+      required:true,
     },
+    image: String,
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
-    likes: [
+    likes:[
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",

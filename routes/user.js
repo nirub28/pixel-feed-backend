@@ -5,17 +5,19 @@ const userController = require("../controllers/user_controller");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 
-
 const multer = require("multer");
 const upload = multer(); // Initialize multer
 
 const cryto = require("crypto");
-const { Upload } = require("@aws-sdk/lib-storage");
 
 const randomImageName = (bytes = 32) =>
   cryto.randomBytes(bytes).toString("hex"); // to create a random name
 
-const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
+const {
+  S3Client,
+  PutObjectCommand,
+  DeleteObjectCommand,
+} = require("@aws-sdk/client-s3");
 
 const bucketName = process.env.BUCKET_NAME;
 const bucketRegion = process.env.BUCKET_REGION;
@@ -47,7 +49,7 @@ router.post("/signin", passport.authenticate("local"), (req, res) => {
     email: user.email,
     name: user.name,
     username: user.username,
-    profilePictureToShow: user.profilepic,
+    profilePicture: user.profilepic,
     bio: user.bio,
     followers: user.followers,
     following: user.following,
@@ -78,44 +80,80 @@ router.post(
   "/update-profile/:userId",
   upload.single("profilePicture"),
   async (req, res) => {
-    const key = randomImageName(); // Generate a random key
+    const userId = req.params.userId;
+    const bio = req.body.bio;
 
-    const uploader = new Upload({
-      client: s3,
-      params: {
+    // Check if a profile picture was sent
+    if (req.file) {
+      const myUser = await User.findById(userId);
+
+      if (myUser.profilepic) {
+        const imageUrl = myUser.profilepic;
+        const parts = imageUrl.split("/");
+        const imageKey = parts[parts.length - 1];
+        // console.log("image key is",key );
+
+        const deleteParams = {
+          Bucket: bucketName,
+          Key: imageKey,
+        };
+
+        try {
+          // Send the delete command to S3
+          await s3.send(new DeleteObjectCommand(deleteParams));
+        } catch (error) {
+          console.error("Error deleting object:", error);
+        }
+      }
+
+      const imageName = randomImageName(); // Generate a random key
+
+      const params = {
         Bucket: bucketName,
-        Key: key,
-        Body: req.file.buffer, // Your file data
+        Key: imageName,
+        Body: req.file.buffer,
         ContentType: req.file.mimetype,
-      },
-    });
+      };
 
-    try {
-      await uploader.done(); // Wait for the upload to complete
-      const imageUrl = `https://${bucketName}.s3.${bucketRegion}.amazonaws.com/${key}`;
-      // console.log("Image URL:", imageUrl);
+      try {
+        const imageUrl = `https://${bucketName}.s3.${bucketRegion}.amazonaws.com/${imageName}`;
+        await s3.send(new PutObjectCommand(params)); // Wait for the upload to complete
 
-      // Now, we can update the user's profile in the database
-      const userId = req.params.userId;
-      const bio = req.body.bio;
+        // Update the user's profile with the image URL
 
-      // Update the user's profile with the image URL and bio
-      await User.findByIdAndUpdate(userId, {
-        profilepic: imageUrl,
-        bio: bio,
-      });
-
-      // Send only the image URL and bio back to the front end
-        res.status(200).json({
-        message: "Profile updated successfully",
-        profilePicture: imageUrl,
-        bio: bio,
-      });
-
-    } catch (error) {
-      console.error("Error uploading file:", error);
+        if (myUser) {
+          myUser.profilepic = imageUrl;
+          await myUser.save();
+        } else {
+          // Handle the case where the user is not found
+          console.error("User not found");
+        }
+      } catch (error) {
+        console.error("Error uploading file:", error);
+      }
     }
+
+    // Always update the bio (if provided)
+    const myUser = await User.findById(userId);
+
+    if (myUser) {
+      myUser.bio = bio;
+    } else {
+      // Handle the case where the user is not found
+      console.error("User not found");
+    }
+
+    // Save the updated user document
+    await myUser.save();
+
+    // Prepare the response
+    res.status(200).json({
+      message: "Profile picture updated successfully",
+      profilepic: myUser.profilepic,
+      bio: myUser.bio,
+    });
   }
 );
+
 
 module.exports = router;

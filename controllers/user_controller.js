@@ -204,13 +204,13 @@ exports.getFollowers = async (req, res) => {
   const { userId } = req.params;
 
   try {
-    const user = await User.findById(userId).populate("followers"); // Assuming you have a 'followers' field in your User model
+    const user = await User.findById(userId).populate("followers");
 
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
 
-    const followers = user.followers; // Assuming 'followers' is an array of user IDs
+    const followers = user.followers; // 'followers' is an array of user IDs
 
     res.json({ followers });
   } catch (error) {
@@ -224,13 +224,13 @@ exports.getFollowing = async (req, res) => {
   const { userId } = req.params;
 
   try {
-    const user = await User.findById(userId).populate("following"); // Assuming you have a 'following' field in your User model
+    const user = await User.findById(userId).populate("following"); //  you have a 'following' field in your User model
 
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
 
-    const following = user.following; // Assuming 'following' is an array of user IDs
+    const following = user.following; //  'following' is an array of user IDs
 
     res.json({ following });
   } catch (error) {
