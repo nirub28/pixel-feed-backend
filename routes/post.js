@@ -1,7 +1,7 @@
 const express = require("express");
 const passport = require("passport");
 const router = express.Router();
-const userController = require("../controllers/post_controller");
+const postController = require("../controllers/post_controller");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const Post = require("../models/Post");
@@ -95,5 +95,15 @@ router.get("/info/:imageId", async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 });
+
+// Endpoint to add a new comment
+router.post('/add-comment',postController.addComment); 
+router.delete('/delete-comment/:imageId/:commentId', postController.deleteComment);
+router.post('/like/:postId',postController.addLike); 
+router.get('/likes/:imageId',postController.likesCount); 
+
+
+
+
 
 module.exports = router;

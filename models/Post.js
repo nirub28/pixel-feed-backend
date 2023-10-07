@@ -26,6 +26,8 @@ const postSchema = new mongoose.Schema(
           ref: "User",
           required: true,
         },
+        username: String, // Store the username here
+        profilepic: String, // Store the profile picture URL here
         text: {
           type: String,
           required: true,
