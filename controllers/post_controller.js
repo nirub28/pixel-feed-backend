@@ -132,3 +132,67 @@ exports.likesCount = async function (req, res) {
   }
 
 };
+
+
+// Controller to fetch posts for specified user IDs
+exports.getAllPosts = async (req, res) => {
+  try {
+    const { userIds } = req.query;
+
+
+    // Parse the user IDs from the request query string
+    const parsedUserIds = userIds.split(',');
+
+    // Fetch posts for the specified user IDs from your database
+    const posts = await Post.find({ user: { $in: parsedUserIds } })
+    .sort({ createdAt: -1 })
+    .populate('user', 'username profilepic'); // Populate the 'user' field with 'username' and 'profilepic' fields
+
+
+    // Return the fetched posts as JSON
+    res.json(posts);
+  } catch (error) {
+    console.error('Error fetching posts:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
+
+
+
+
+exports.addLiking = async function (req, res) {
+  try {
+    const postId = req.params.imageId;
+    const userId = req.body.userId; 
+
+    // console.log("ids are",postId,userId);
+
+
+    const post = await Post.findById(postId).populate('user', 'username profilepic');
+
+    if (!post) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+
+    // Check if the user has already liked the post
+    const likedIndex = post.likes.indexOf(userId);
+
+    if (likedIndex === -1) {
+      // User hasn't liked the post, so add their ID to the likes array
+      post.likes.push(userId);
+    } else {
+      // User has already liked the post, so remove their ID from the likes array
+      post.likes.splice(likedIndex, 1);
+    }
+
+    // Save the updated post
+    await post.save();
+
+    // Respond with the updated likes data
+    res.status(200).json(post);
+  } catch (error) {
+    console.error("Error updating like:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};

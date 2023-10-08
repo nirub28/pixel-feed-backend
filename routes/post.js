@@ -5,6 +5,7 @@ const postController = require("../controllers/post_controller");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const Post = require("../models/Post");
+const sharp = require("sharp");
 
 const multer = require("multer");
 const upload = multer(); // Initialize multer
@@ -13,6 +14,12 @@ const cryto = require("crypto");
 
 const randomImageName = (bytes = 32) =>
   cryto.randomBytes(bytes).toString("hex"); // to create a random name
+
+//  the desired width and height constraints
+const maxWidth = 1080;
+const minWidth = 566;
+const minHeight = 566;
+const maxHeight = 1350;
 
 const {
   S3Client,
@@ -39,12 +46,16 @@ router.post("/create/:userId", upload.single("Picture"), async (req, res) => {
 
   //console.log("file is", req.body);
 
+  const resizedImageBuffer = await sharp(req.file.buffer)
+    .resize({ width: maxWidth, height: maxHeight })
+    .toBuffer();
+
   const imageName = randomImageName(); // Generate a random key
 
   const params = {
     Bucket: bucketName,
     Key: imageName,
-    Body: req.file.buffer,
+    Body: resizedImageBuffer,
     ContentType: req.file.mimetype,
   };
 
@@ -86,10 +97,10 @@ router.get("/info/:imageId", async (req, res) => {
   try {
     const imageId = req.params.imageId;
     // console.log("I am triggered",imageId);
-    const post = await Post.findById({ _id:imageId });
-    if(post){
-       res.json(post);
-    }  
+    const post = await Post.findById({ _id: imageId });
+    if (post) {
+      res.json(post);
+    }
   } catch (error) {
     console.error("Error fetching posts:", error);
     res.status(500).json({ error: "Internal server error" });
@@ -97,13 +108,14 @@ router.get("/info/:imageId", async (req, res) => {
 });
 
 // Endpoint to add a new comment
-router.post('/add-comment',postController.addComment); 
-router.delete('/delete-comment/:imageId/:commentId', postController.deleteComment);
-router.post('/like/:postId',postController.addLike); 
-router.get('/likes/:imageId',postController.likesCount); 
-
-
-
-
+router.post("/add-comment", postController.addComment);
+router.delete(
+  "/delete-comment/:imageId/:commentId",
+  postController.deleteComment
+);
+router.post("/like/:postId", postController.addLike);
+router.get("/likes/:imageId", postController.likesCount);
+router.get("/all", postController.getAllPosts);
+router.post("/liking/:imageId", postController.addLiking);
 
 module.exports = router;
