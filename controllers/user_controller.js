@@ -128,6 +128,7 @@ module.exports.getUserProfileByUsername = async (req, res) => {
     }
 
     // Return the user's profile data
+    // console.log(user);
     res.status(200).json(user);
   } catch (error) {
     // Handle errors
