@@ -1,13 +1,29 @@
 const express = require('express');
-const bodyParser = require('body-parser');
-const cors = require('cors');
+
+// const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
+const dotenv = require ('dotenv'); // env variables
+dotenv.config();
+
+
 const app = express();
 const PORT = 8000;
 
-// const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
 
-const dotenv = require ('dotenv'); // env variables
-dotenv.config();
+// Initialize the database connection
+const db = require("./config/mongoose.js");
+
+const cors = require('cors');
+app.use(cors());
+
+const bodyParser = require('body-parser');
+
+
+
+//set up chat server to be used with socket.io
+const chatServer = require('http').Server(app);
+const chatSockets= require('./config/chat_socket.js').chatSockets(chatServer);
+chatServer.listen(5000);
+console.log('Chat server is running on port 5000');
 
 
 // const bucketName = process.env.BUCKET_NAME
@@ -24,13 +40,13 @@ dotenv.config();
 // })
 
 // Enable Cross-Origin Resource Sharing (CORS)
-app.use(cors());
 
 // Parse incoming JSON data
 app.use(bodyParser.json());
 
-// Initialize the database connection
-const db = require("./config/mongoose.js");
+
+
+
 
 // Parse cookies in the request
 const cookieParser = require("cookie-parser");
@@ -51,6 +67,7 @@ const MongoStore = require("connect-mongo");
 // Middleware to parse the request body
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
+
 
 
 // Create a session
@@ -98,3 +115,8 @@ app.listen(PORT, function (err) {
   }
   console.log(`The server is running on port: ${PORT}`);
 });
+
+
+
+
+
