@@ -7,6 +7,8 @@ router.get("/", homeController.home);
 router.use("/user", require("./user"));
 router.use("/post", require("./post"));
 router.use("/message", require("./message"));
+router.use("/notification", require("./notification"));
+
 
 
 

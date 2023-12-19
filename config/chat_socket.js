@@ -8,11 +8,11 @@ module.exports.chatSockets = function (socketServer) {
   });
 
   io.sockets.on("connection", function (socket) {
-    console.log('new connection received...!');
+    // console.log('new connection received...!');
 
 
     socket.on('join_room', function(data){
-        console.log('Joining request received..', data);
+        // console.log('Joining request received..', data);
         socket.join(data); // Join the room (conversation)
     });
 
@@ -24,7 +24,7 @@ module.exports.chatSockets = function (socketServer) {
       
 
     socket.on("disconnect", function () {
-      console.log('socket disconnected..!');
+      // console.log('socket disconnected..!');
     });
   });
 };
