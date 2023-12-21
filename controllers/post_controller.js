@@ -104,7 +104,7 @@ exports.addLike = async function (req, res) {
     await post.save();
 
     // Respond with the updated likes data
-    res.status(200).json({ count: post.likes.length, users: post.likes });
+    res.status(200).json({ count: post.likes.length, users: post.likes, likeorunlike:likedIndex });
   } catch (error) {
     console.error("Error updating like:", error);
     res.status(500).json({ error: "Internal server error" });

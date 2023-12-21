@@ -6,6 +6,8 @@ const Notification = require("../models/Notification");
 router.post("/send", async (req, res) => {
   const { senderId, receiverId, type, postId } = req.body;
 
+  // console.log("details",senderId,  receiverId , type, postId);
+
   try {
     const notification = new Notification({
       sender: senderId,
@@ -33,7 +35,7 @@ router.get("/user/:userId", async (req, res) => {
   try {
     const notifications = await Notification.find({ receiver: userId })
       .populate("sender", "username profilepic") // Add fields you want to populate
-      .populate("postId", "caption"); // Add fields you want to populate
+      .populate("postId", "image"); // Add fields you want to populate
 
     res.json(notifications);
   } catch (error) {
@@ -54,5 +56,24 @@ router.patch("/mark-read/:userId", async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
+
+
+
+
+// Route to delete all notifications for a user
+router.delete('/delete-notifications/:userId', async (req, res) => {
+  const userId = req.params.userId;
+
+  try {
+    // Delete all notifications for the specified user
+    await Notification.deleteMany({ receiver: userId });
+
+    res.status(200).json({ message: 'Notifications deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting notifications:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 
 module.exports = router;
