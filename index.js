@@ -4,6 +4,13 @@ const express = require('express');
 const dotenv = require ('dotenv'); // env variables
 dotenv.config();
 
+// razorpay
+const razorpay = require('razorpay');
+const instance= new razorpay({
+  key_id:process.env.PAY_ID,
+  key_secret:process.env.PAY_SECRET,
+})
+
 
 const app = express();
 const PORT = 8000;
